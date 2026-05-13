@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-visual">
+            <div class="auth-visual-content">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your saved destinations, reviews, and personalized travel recommendations.</p>
+                <div class="auth-visual-features">
+                    <div><i class="fas fa-compass"></i> Continue exploring Saudi Arabia</div>
+                    <div><i class="fas fa-bookmark"></i> Access your saved places</div>
+                    <div><i class="fas fa-pen"></i> Manage your reviews</div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form-wrap">
+            <div class="auth-form-header">
+                <a href="{{ url_for('index') }}" class="auth-logo">
+                    <i class="fas fa-compass"></i> Saudi<strong>Tourism</strong>
+                </a>
+                <h1>Sign In</h1>
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
+            </div>
+            <form action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', function(e) {
+        let valid = true;
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            document.getElementById('emailError').textContent = 'Please enter a valid email address.';
+            valid = false;
+        }
+        if (!password.value) {
+            document.getElementById('passwordError').textContent = 'Password is required.';
+            valid = false;
+        }
+        if (!valid) e.preventDefault();
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

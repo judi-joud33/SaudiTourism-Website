@@ -1,0 +1,1 @@
+web: python db_init.py && python seed_db.py && gunicorn app:app
