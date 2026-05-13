@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}{{ location.name }}{% endblock %}
+
+{% block content %}
+<!-- Location Hero -->
+<section class="detail-hero" style="background-image: url('{{ location.image_url or 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80' }}')">
+    <div class="detail-hero-overlay"></div>
+    <div class="container detail-hero-content">
+        <a href="{{ url_for('locations') }}" class="back-link"><i class="fas fa-arrow-left"></i> All Destinations</a>
+        <div class="detail-hero-info">
+            {% if location.category %}
+            <span class="detail-category">{{ location.category.name }}</span>
+            {% endif %}
+            <h1>{{ location.name }}</h1>
+            <p class="detail-location"><i class="fas fa-map-marker-alt"></i> {{ location.city }}, {{ location.region }}</p>
+            <div class="detail-meta">
+                <span class="detail-rating">
+                    {% for i in range(1, 6) %}
+                    <i class="fas fa-star {% if i <= location.rating_avg|int %}filled{% endif %}"></i>
+                    {% endfor %}
+                    <strong>{{ "%.1f"|format(location.rating_avg|float) }}</strong>
+                    ({{ location.review_count }} review{{ 's' if location.review_count != 1 }})
+                </span>
+                {% if current_user %}
+                <button class="btn-favorite {% if is_favorited %}favorited{% endif %}" id="favoriteBtn" data-slug="{{ location.slug }}">
+                    <i class="fas fa-heart"></i>
+                    <span>{{ 'Saved' if is_favorited else 'Save' }}</span>
+                </button>
+                <a href="#writeReview" class="btn btn-outline btn-sm">Write a Review</a>
+                {% else %}
+                <a href="{{ url_for('login', next=request.url) }}" class="btn btn-outline btn-sm">Login to review</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section detail-section">
+    <div class="container">
+        <div class="detail-grid">
+            <!-- Main Content -->
+            <div class="detail-main">
+                <div class="detail-card">
+                    <h2>About This Destination</h2>
+                    <p class="detail-description">{{ location.description }}</p>
+                    {% if location.long_description %}
+                    <p class="detail-long-desc">{{ location.long_description }}</p>
+                    {% endif %}
+                </div>
+
+                {% if location.highlights %}
+                <div class="detail-card">
+                    <h2>Highlights</h2>
+                    <div class="highlights-grid">
+                        {% for hl in location.highlights %}
+                        <div class="highlight-tag">
+                            <i class="fas fa-check-circle"></i> {{ hl }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reviews Section -->
+                <div class="detail-card" id="reviews">
+                    <div class="reviews-header">
+                        <h2>Reviews <span class="review-count">({{ reviews|length }})</span></h2>
+                    </div>
+
+                    {% if reviews %}
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-item">
+                            <div class="review-avatar">
+                                {{ review.author.full_name[0]|upper if review.author else 'U' }}
+                            </div>
+                            <div class="review-content">
+                                <div class="review-top">
+                                    <strong>{{ review.author.full_name if review.author else 'Anonymous' }}</strong>
+                                    <div class="review-stars">
+                                        {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {% if i <= review.rating %}filled{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <h4>{{ review.title }}</h4>
+                                <p>{{ review.body }}</p>
+                                <div class="review-meta">
+                                    {% if review.visit_date %}
+                                    <span><i class="fas fa-calendar"></i> Visited {{ review.visit_date }}</span>
+                                    {% endif %}
+                                    <span><i class="fas fa-clock"></i> {{ review.created_at.strftime('%Y-%m-%d') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-reviews">
+                        <i class="fas fa-comment-dots"></i>
+                        <p>No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Write Review Form -->
+                    {% if current_user %}
+                    <div class="review-form-wrap" id="writeReview">
+                        <h3>Write a Review</h3>
+                        <form action="{{ url_for('submit_review', slug=location.slug) }}" method="POST" id="reviewForm" novalidate>
+                            <div class="form-group">
+                                <label>Your Rating *</label>
+                                <div class="star-rating-input" id="starRating">
+                                    {% for i in range(5, 0, -1) %}
+                                    <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" required>
+                                    <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                                    {% endfor %}
+                                </div>
+                                <div class="error-message" id="ratingError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewTitle">Review Title *</label>
+                                <input type="text" name="title" id="reviewTitle" placeholder="Summarize your experience" required minlength="3" maxlength="100">
+                                <div class="error-message" id="titleError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewBody">Your Review *</label>
+                                <textarea name="body" id="reviewBody" rows="5" placeholder="Share your detailed experience..." required minlength="10" maxlength="2000"></textarea>
+                                <div class="char-count"><span id="charCount">0</span>/2000</div>
+                                <div class="error-message" id="bodyError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="visitDate">Visit Date (optional)</label>
+                                <input type="date" name="visit_date" id="visitDate" max="{{ "now"|string }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Review
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="review-login-prompt">
+                        <p><a href="{{ url_for('login', next=request.url) }}">Sign in</a> to write a review and share your experience.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="detail-sidebar">
+                <div class="sidebar-card">
+                    <h3>Visitor Info</h3>
+                    <ul class="info-list">
+                        <li>
+                            <i class="fas fa-ticket-alt"></i>
+                            <div>
+                                <strong>Entry Fee</strong>
+                                <span>{{ location.entry_fee }}</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Opening Hours</strong>
+                                <span>{{ location.opening_hours }}</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <strong>Best Time to Visit</strong>
+                                <span>{{ location.best_time_to_visit }}</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <strong>Location</strong>
+                                <span>{{ location.city }}, {{ location.region }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                {% if location.latitude and location.longitude %}
+                <div class="sidebar-card">
+                    <h3>Map</h3>
+                    <div class="map-placeholder">
+                        <iframe
+                            width="100%"
+                            height="250"
+                            style="border:0; border-radius: 12px;"
+                            loading="lazy"
+                            src="https://maps.google.com/maps?q={{ location.latitude }},{{ location.longitude }}&z=10&output=embed">
+                        </iframe>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="sidebar-card sidebar-cta">
+                    <h3>Plan Your Visit</h3>
+                    <p>Get the most out of your trip to {{ location.name }} with our travel tips.</p>
+                    <a href="{{ url_for('contact') }}" class="btn btn-primary btn-block">Get in Touch</a>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Favorite toggle
+    const favBtn = document.getElementById('favoriteBtn');
+    if (favBtn) {
+        favBtn.addEventListener('click', async function() {
+            const slug = this.dataset.slug;
+            try {
+                const res = await fetch(`/location/${slug}/favorite`, { method: 'POST' });
+                const data = await res.json();
+                this.classList.toggle('favorited', data.favorited);
+                this.querySelector('span').textContent = data.favorited ? 'Saved' : 'Save';
+            } catch(e) {
+                console.error(e);
+            }
+        });
+    }
+
+    // Review form validation
+    const form = document.getElementById('reviewForm');
+    if (form) {
+        const bodyInput = document.getElementById('reviewBody');
+        const charCount = document.getElementById('charCount');
+        bodyInput.addEventListener('input', () => {
+            charCount.textContent = bodyInput.value.length;
+        });
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+            const rating = form.querySelector('input[name="rating"]:checked');
+            const title = document.getElementById('reviewTitle');
+            const body = document.getElementById('reviewBody');
+
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+            if (!rating) {
+                document.getElementById('ratingError').textContent = 'Please select a rating.';
+                valid = false;
+            }
+            if (!title.value.trim() || title.value.trim().length < 3) {
+                document.getElementById('titleError').textContent = 'Title must be at least 3 characters.';
+                valid = false;
+            }
+            if (!body.value.trim() || body.value.trim().length < 10) {
+                document.getElementById('bodyError').textContent = 'Review must be at least 10 characters.';
+                valid = false;
+            }
+            if (!valid) e.preventDefault();
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}
