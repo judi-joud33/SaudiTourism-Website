@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-sm">
+    <div class="container">
+        <h1>Contact <span class="gradient-text">Us</span></h1>
+        <p>Have questions about traveling in Saudi Arabia? We'd love to help!</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h2>Get in Touch</h2>
+                <p>Whether you need travel advice, partnership opportunities, or have feedback about our platform, we're here to help.</p>
+                <div class="contact-cards">
+                    <div class="contact-card">
+                        <div class="contact-card-icon"><i class="fas fa-envelope"></i></div>
+                        <h4>Email Us</h4>
+                        <p>info@sauditourism.guide</p>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-card-icon"><i class="fas fa-phone-alt"></i></div>
+                        <h4>Call Us</h4>
+                        <p>+966 11 XXX XXXX</p>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-card-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <h4>Visit Us</h4>
+                        <p>Riyadh, Saudi Arabia</p>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-form-wrap">
+                <form action="{{ url_for('contact') }}" method="POST" id="contactForm" novalidate>
+                    <div class="form-group">
+                        <label for="name">Your Name *</label>
+                        <input type="text" name="name" id="name" placeholder="Enter your name" required minlength="2">
+                        <div class="error-message" id="nameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" name="email" id="email" placeholder="your@email.com" required>
+                        <div class="error-message" id="emailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" name="subject" id="subject" placeholder="What's this about?">
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea name="message" id="message" rows="6" placeholder="Tell us what you need help with..." required minlength="10"></textarea>
+                        <div class="error-message" id="messageError"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', function(e) {
+        let valid = true;
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+        const name = document.getElementById('name');
+        const email = document.getElementById('email');
+        const message = document.getElementById('message');
+
+        if (!name.value.trim() || name.value.trim().length < 2) {
+            document.getElementById('nameError').textContent = 'Name must be at least 2 characters.';
+            valid = false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            document.getElementById('emailError').textContent = 'Please enter a valid email address.';
+            valid = false;
+        }
+        if (!message.value.trim() || message.value.trim().length < 10) {
+            document.getElementById('messageError').textContent = 'Message must be at least 10 characters.';
+            valid = false;
+        }
+        if (!valid) e.preventDefault();
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
